@@ -1,0 +1,166 @@
+import random
+import tkinter as tk
+from tkinter import messagebox
+
+possibleNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+gameBoard = [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']]
+rows = 3
+cols = 3
+turnCounter = 0
+computerMovesCount = 0  # Ajout de la variable pour suivre le nombre de coups de l'ordinateur
+
+def printGameBoard():
+    for x in range(rows):
+        print("\n+---+---+---+")
+        print("|", end="")
+        for y in range(cols):
+            print("", gameBoard[x][y], end=" |")
+    print("\n+---+---+---+")
+
+def modifyArray(num, turn):
+    num -= 1
+    row, col = divmod(num, 3)
+    if gameBoard[row][col] == ' ':
+        gameBoard[row][col] = turn
+    else:
+        print("Coup invalide. Case déjà occupée. Veuillez réessayer.")
+
+def checkForWinner(board):
+    for row in board:
+        if all(cell == 'X' for cell in row):
+            return 'X'
+        elif all(cell == 'O' for cell in row):
+            return 'O'
+
+    for col in range(3):
+        if all(board[row][col] == 'X' for row in range(3)):
+            return 'X'
+        elif all(board[row][col] == 'O' for row in range(3)):
+            return 'O'
+
+    if all(board[i][i] == 'X' for i in range(3)) or all(board[i][2 - i] == 'X' for i in range(3)):
+        return 'X'
+    elif all(board[i][i] == 'O' for i in range(3)) or all(board[i][2 - i] == 'O' for i in range(3)):
+        return 'O'
+
+    return 'N'
+
+def isBoardFull(board):
+    return all(all(cell != ' ' for cell in row) for row in board)
+
+def minimax(board, depth, alpha, beta, isMaximizing):
+    global computerMovesCount  # Utilisation de la variable globale
+
+    scores = {'X': -1, 'O': 1, 'tie': 0}
+
+    winner = checkForWinner(board)
+    if winner != 'N':
+        return scores[winner]
+
+    if isBoardFull(board):
+        return scores['tie']
+
+    if isMaximizing:
+        maxEval = float('-inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'O'
+                    eval = minimax(board, depth + 1, alpha, beta, False)
+                    board[i][j] = ' '
+                    maxEval = max(maxEval, eval)
+                    alpha = max(alpha, eval)
+                    if beta <= alpha:
+                        break  # Élagage alpha-bêta
+                    computerMovesCount += 1
+        return maxEval
+    else:
+        minEval = float('inf')
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == ' ':
+                    board[i][j] = 'X'
+                    eval = minimax(board, depth + 1, alpha, beta, True)
+                    board[i][j] = ' '
+                    minEval = min(minEval, eval)
+                    beta = min(beta, eval)
+                    if beta <= alpha:
+                        break  # Élagage alpha-bêta
+        return minEval
+
+def findBestMove(board):
+    global computerMovesCount  # Utilisation de la variable globale
+
+    bestVal = float('-inf')
+    bestMove = (-1, -1)
+
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == ' ':
+                board[i][j] = 'O'
+                moveVal = minimax(board, 0, float('-inf'), float('inf'), False)
+                board[i][j] = ' '
+                if moveVal > bestVal:
+                    bestMove = (i, j)
+                    bestVal = moveVal
+                    computerMovesCount += 1  # Incrémentation du nombre de coups de l'ordinateur
+
+    return bestMove
+
+def IA():
+    global computerMovesCount
+    move = findBestMove(gameBoard)
+    if move != (-1, -1):
+        gameBoard[move[0]][move[1]] = 'O'
+    print(f"Nombre de coups calculés par l'ordinateur: {computerMovesCount}") 
+def update_grid():
+    for i in range(3):
+        for j in range(3):
+            button_grid[i][j].config(text=gameBoard[i][j])
+
+def on_button_click(i, j):
+    global turnCounter, possibleNumbers
+
+    if gameBoard[i][j] == ' ':
+        modifyArray(3 * i + j + 1, 'X')
+        update_grid()
+
+        winner = checkForWinner(gameBoard)
+        if winner != "N":
+            messagebox.showinfo("Fin de partie", f"{winner} a gagné !\nMerci d'avoir joué :)")
+            reset_game()
+            return
+        elif isBoardFull(gameBoard):
+            messagebox.showinfo("Fin de partie", "Match nul !\nMerci d'avoir joué :)")
+            reset_game()
+            return
+
+        turnCounter += 1
+        IA()
+        update_grid()
+
+def reset_game():
+    global gameBoard, turnCounter, computerMovesCount
+    gameBoard = [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']]
+    turnCounter = 0
+    computerMovesCount = 0  # Réinitialisation du nombre de coups de l'ordinateur
+    update_grid()
+
+# Création de la fenêtre principale Tkinter
+root = tk.Tk()
+root.title("Tic Tac Toe")
+
+# Création des boutons
+button_grid = [[tk.Button(root, text=' ', font=('Helvetica', 24), width=5, height=2, command=lambda i=i, j=j: on_button_click(i, j)) for j in range(3)] for i in range(3)]
+
+# Placement des boutons dans la grille
+for i in range(3):
+    for j in range(3):
+        button_grid[i][j].grid(row=i, column=j)
+
+# Bouton Rejouer
+reset_button = tk.Button(root, text="Rejouer", command=reset_game)
+reset_button.grid(row=3, column=1)
+
+# Lancement de la boucle principale Tkinter
+root.mainloop()
