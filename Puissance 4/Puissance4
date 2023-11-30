@@ -1,0 +1,78 @@
+def init_board() -> list:
+    return [[' ' for _ in range(7)] for _ in range(6)]
+
+def print_board(board: list) -> None:
+    for row in board:
+        print('|'.join(row))
+        print('-' * 29)
+
+def is_valid_move(board: list, column: int) -> bool:
+    return board[0][column] == ' '
+
+def make_move(board: list, column: int, player: str) -> bool:
+    for i in range(5, -1, -1):
+        if board[i][column] == ' ':
+            board[i][column] = player
+            return True
+    return False
+
+def check_winner(board: list, player: str) -> bool:
+    for row in board:
+        for i in range(4):
+            if row[i:i+4] == [player] * 4:
+                return True
+
+    for i in range(7):
+        for j in range(3):
+            if [board[j+k][i] for k in range(4)] == [player] * 4:
+                return True
+
+    for i in range(3):
+        for j in range(4):
+            if [board[i+k][j+k] for k in range(4)] == [player] * 4:
+                return True
+
+    for i in range(3, 6):
+        for j in range(4):
+            if [board[i-k][j+k] for k in range(4)] == [player] * 4:
+                return True
+
+    return False
+
+def is_board_full(board: list) -> bool:
+    return all(cell != ' ' for row in board for cell in row)
+
+def main() -> None:
+    board: list = init_board()
+    current_player: str = 'X'
+
+    while True:
+        print_board(board)
+        column: int = int(input(f"Joueur {current_player}, choisissez une colonne (0-6): "))
+
+        if 0 <= column <= 6 and is_valid_move(board, column):
+            if not make_move(board, column, current_player):
+                print("Colonne pleine, veuillez choisir une autre colonne.")
+                continue
+
+            if check_winner(board, current_player):
+                print_board(board)
+                print(f"Joueur {current_player} a gagné ! Félicitations !")
+                break
+            elif is_board_full(board):
+                print_board(board)
+                print("Match nul !")
+                break
+            else:
+                current_player = 'O' if current_player == 'X' else 'X'
+        else:
+            print("Choix de colonne invalide. Veuillez choisir une colonne entre 0 et 6.")
+
+def launch_game() -> None:
+    rejouer: bool = True
+    while rejouer:
+        main()
+        relancer: str = input("Voulez-vous relancer une partie ? (Oui/Non) : ").lower()
+        rejouer = relancer == "oui"
+
+launch_game()
