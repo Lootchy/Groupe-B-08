@@ -1,0 +1,74 @@
+import random
+import tools
+
+def read_words_from_file(file_path: str) -> list[str]:
+    with open(file_path, 'r') as fin:
+        return fin.readlines()
+
+def choose_random_word(words: list[str]) -> str:
+    return random.choice(words).rstrip()
+
+def print_grid(grid: list[list[str]]) -> None:
+    for row in grid:
+        print(" ".join(row))
+
+
+def play_game(word: str, max_tries: int = 6) -> bool:
+    found: bool = False
+    nb_try: int = 0
+
+    # Etablis la taille de la grille
+    rows, cols = 6, 5
+    grid: list[list[str]] = [[' ' for _ in range(cols)] for _ in range(rows)]
+
+    while not found and nb_try < max_tries:
+        guess = tools.get_valid_choice()
+
+        nb_try += 1
+        good_letter_count: int = 0
+        letters_discovered: list[str] = ['_'] * len(word)
+
+        for i in range(len(word)):
+            if word[i] == guess[i]:
+                letters_discovered[i] = '\033[32m' + guess[i] + '\033[0m'  # Green
+                good_letter_count += 1
+            elif guess[i] in word:
+                if guess.count(guess[i]) > word.count(guess[i]):
+                    letters_discovered[i] = '\033[31m' + guess[i] + '\033[0m'  # Red
+                else:
+                    letters_discovered[i] = '\033[33m' + guess[i] + '\033[0m'  # Yellow
+
+        # Mise à jour de la grille avec result
+        grid[nb_try - 1] = letters_discovered
+
+        # Affiche la grille
+        print_grid(grid)
+
+        if good_letter_count == len(word):
+            found = True
+            print(f"\nYou won with {nb_try} tries!")
+
+    if nb_try == max_tries and not found:
+        print(f"\nYou ran out of tries. The correct word was: {word}")
+
+    return found
+
+def replay() -> bool:
+    replay_choice: str = input("\nDo you want to play again? (Yes/No): ").lower()
+    return replay_choice == "yes"
+
+
+replay_game: bool = True
+
+while replay_game:
+    words: list[str] = read_words_from_file('output.txt')
+    selected_word: str = choose_random_word(words)
+    game_result: bool = play_game(selected_word)
+
+    if not game_result:
+        print("Game over. Thanks for playing!")
+        break
+
+    replay_game = replay()
+
+print("Goodbye!")
