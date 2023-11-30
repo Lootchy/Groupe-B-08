@@ -1,0 +1,17 @@
+# main.py
+import tools
+
+tools.score_ordi: int = 0
+tools.score_joueur: int = 0
+
+def launch_game() -> None:
+    while tools.score_joueur < 3 and tools.score_ordi < 3:
+        tools.score_ordi, tools.score_joueur = tools.jeu_shifumi(tools.score_ordi, tools.score_joueur)
+
+    relancer : str = input("Do you want to play again? (Yes/No): ").lower()
+    if relancer == "oui":
+        tools.score_joueur = 0
+        tools.score_ordi = 0
+        launch_game()
+
+launch_game()
