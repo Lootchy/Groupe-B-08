@@ -1,0 +1,12 @@
+# Votre jeu principal
+
+import tools
+
+def game():
+    rejouer = True
+    while rejouer:
+        tools.play_game()
+        relancer = input("Voulez-vous relancer une partie ? (Oui/Non) : ").lower()
+        rejouer = relancer == "oui"
+
+game()
