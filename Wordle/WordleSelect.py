@@ -44,16 +44,20 @@ def play_game(word: str, max_tries: int = 6) -> bool:
         nb_try += 1
         good_letter_count: int = 0
         letters_discovered: list[str] = ['_'] * len(word)
-
+        letter_indices = {}
         for i in range(len(word)):
             if word[i] == guess[i]:
-                letters_discovered[i] = '\033[32m' + guess[i] + '\033[0m'  # Vert
+                letters_discovered[i] = '\033[32m' + guess[i] + '\033[0m'  # Green
                 good_letter_count += 1
             elif guess[i] in word:
-                if guess.count(guess[i]) > word.count(guess[i]):
-                    letters_discovered[i] = '\033[31m' + guess[i] + '\033[0m'  # Rouge
+                if guess[i] not in letter_indices:
+                    letter_indices[guess[i]] = i
+                    letters_discovered[i] = '\033[33m' + guess[i] + '\033[0m'  # Yellow
                 else:
-                    letters_discovered[i] = '\033[33m' + guess[i] + '\033[0m'  # Jaune
+                    if i == letter_indices[guess[i]]:
+                        letters_discovered[i] = '\033[33m' + guess[i] + '\033[0m'  # Orange
+                    else:
+                        letters_discovered[i] = '\033[31m' + guess[i] + '\033[0m'  # Red
 
         # Mettre à jour la grille avec le résultat de l'essai
         grid[nb_try - 1] = letters_discovered
